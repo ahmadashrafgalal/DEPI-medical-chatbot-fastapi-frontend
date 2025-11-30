@@ -1,72 +1,275 @@
-# Medical Chatbot
+# 🩺 Medical Chatbot
 
-A FastAPI-based medical chatbot application that provides intelligent responses to medical queries.
+**AI-Powered Medical Assistant using RAG, FAISS, Sentence Transformers, and Mistral**
 
-## Features
+![Application Screenshot](Img.png)
 
-- Interactive web interface for medical consultations
-- FastAPI backend for fast and reliable performance
-- Real-time chat functionality
-- Clean and intuitive user interface
+---
 
-## Project Structure
+## 📌 Overview
+
+The **Medical RAG Chatbot** is an intelligent AI system designed to provide friendly, medically oriented responses using an advanced Retrieval-Augmented Generation (RAG) pipeline. It combines:
+
+* **FAISS vector search** for fast similarity retrieval
+* **SentenceTransformer embeddings**
+* **Mistral-7B Instruct** for rewriting and generating answers
+* **FastAPI backend**
+* **HTML/Jinja2 frontend**
+
+The system workflow:
+
+1. Clean and normalize medical text
+2. Expand medical abbreviations
+3. Rewrite the user question using Mistral
+4. Convert question to embeddings using MiniLM
+5. Search similar Q&A using FAISS
+6. Build a context-enriched prompt using retrieved data
+7. Generate the final medical answer
+8. Convert answer into a warm, friendly doctor-like tone
+
+---
+
+# 🧠 System Architecture
 
 ```
-medical-chatbot/
-├── main.py              # FastAPI application entry point
+User
+   ↓
+Frontend (index.html)
+   ↓
+FastAPI Backend
+   ↓
+Mistral → Rewrite Question
+   ↓
+SentenceTransformer → Embedding
+   ↓
+FAISS → Retrieve Similar Medical Q&A
+   ↓
+Prompt Builder
+   ↓
+Mistral → Raw Answer Generation
+   ↓
+Mistral → Conversational Doctor Tone
+   ↓
+Return Final Answer to User
+```
+
+---
+
+# 📂 Project Structure
+
+```
+DEPI-medical-chatbot-fastapi-frontend/
+│
+├── main.py                       # FastAPI application and endpoints
+├── last_api.py                   # RAG pipeline, embeddings, FAISS, Mistral logic
+├── HealthCareMagic-5k.json       # Medical Q&A dataset
+├── question_embeddings.npy        # Precomputed embedding vectors
+│
 ├── templates/
-│   └── index.html       # Frontend HTML template
-├── README.md            # Project documentation
-└── .gitignore          # Git ignore configuration
+│   └── index.html                # Web chat interface
+│
+├── Img.png                       # Application screenshot
+├── UI.png                        # UI design screenshot
+├── README.md                     # Documentation file
+└── .gitignore
 ```
 
-## Screenshot
+---
 
-![Medical Chatbot Application](Img.png)
+# 🧬 Dataset
 
-## Installation
+The project uses the **HealthCareMagic** dataset, containing real-world patient questions and doctor responses:
 
-1. Clone the repository:
+* `input` → Patient question
+* `output` → Doctor answer
+
+### Preprocessing includes:
+
+* Lowercasing
+* URL removal
+* Number removal
+* Stopword filtering
+* Contraction expansion
+* Lemmatization
+* Medical abbreviation expansion (e.g., “BP” → “blood pressure”)
+* Markdown cleanup
+
+---
+
+# 🧹 Preprocessing Pipeline
+
+### Steps:
+
+1. Remove URLs
+2. Clean special characters
+3. Remove digits
+4. Remove stopwords
+5. Normalize medical abbreviations
+6. Lemmatize text
+7. Clean markdown patterns
+8. Expand contractions
+
+This ensures optimized embeddings and better retrieval accuracy.
+
+---
+
+# 📊 Embedding & Vector Indexing
+
+The system uses:
+
+### **Embedding Model:**
+
+`all-MiniLM-L6-v2` — optimized for semantic search
+
+### **FAISS Index:**
+
+`IndexFlatIP` using **Inner Product** similarity
+All vectors are **L2-normalized** before indexing.
+
+Process:
+
+1. Encode all dataset questions
+2. Normalize embeddings
+3. Save to `question_embeddings.npy`
+4. Build FAISS index
+5. Search for top-k similar entries (`k = 3`)
+
+---
+
+# 🤖 Mistral AI Integration
+
+The chatbot uses three sequential inference steps:
+
+### 1️⃣ Rewrite the user input
+
+* Makes unclear questions medically precise
+* Improves retrieval accuracy
+
+### 2️⃣ Generate the final medical answer
+
+* Uses retrieved FAISS context
+* Produces accurate medical explanations
+
+### 3️⃣ Apply a conversational doctor tone
+
+* Warm
+* Friendly
+* Patient-safe wording
+
+**Model:**
+`mistralai/Mistral-7B-Instruct-v0.2`
+
+---
+
+# 🧩 Backend (FastAPI)
+
+### Routes:
+
+#### **GET /**
+
+Returns the main chat interface.
+
+#### **POST /api/chat**
+
+Body:
+
+```json
+{
+  "msg": "user message"
+}
+```
+
+Response:
+
+```json
+{
+  "response": "AI doctor's answer"
+}
+```
+
+### Backend Features:
+
+* Stores last 10 user messages
+* Executes full RAG pipeline
+* Async FastAPI server
+* Integrates HuggingFace InferenceClient
+* Clean separation between logic (`last_api.py`) and server (`main.py`)
+
+---
+
+# 💬 Frontend (HTML + Jinja2)
+
+The UI supports:
+
+* Live message sending via Fetch API
+* Automatic message display for both user and bot
+* Responsive chat layout
+* Easy to customize styling
+
+Screenshot:
+
+![UI](UI.png)
+
+---
+
+# 🚀 Installation
+
+### 1. Clone the repository
+
 ```bash
-git clone <repository-url>
-cd medical-chatbot
+git clone https://github.com/ahmadashrafgalal/DEPI-medical-chatbot-fastapi-frontend
+cd DEPI-medical-chatbot-fastapi-frontend
 ```
 
-2. Install dependencies:
+### 2. Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Or manually:
+
 ```bash
 pip install fastapi uvicorn jinja2
+pip install faiss-cpu
+pip install sentence-transformers
+pip install pandas numpy nltk contractions
+pip install huggingface_hub
 ```
 
-3. Run the application:
+### 3. Run the application
+
 ```bash
 python main.py
 ```
 
-The application will start on `http://localhost:8000`
+Server starts at:
 
-## Usage
+```
+http://localhost:8000
+```
 
-1. Navigate to `http://localhost:8000` in your web browser
-2. Type your medical question or query in the chat interface
-3. Click send to submit your message
-4. Receive responses from the chatbot
+---
 
-## API Endpoints
+# 🛠 Future Enhancements
 
-- **GET `/`** - Serves the main chat interface
-- **POST `/api/chat`** - Handles user messages and returns chatbot responses
+* Add user authentication
+* Add streaming responses
+* Add multilingual support
+* Add admin dashboard
+* Add chat history persistence
+* Add a medical disclaimer block
+* Add a model selection panel
 
-## Requirements
+---
 
-- Python 3.7+
-- FastAPI
-- Uvicorn
-- Jinja2
+# 📄 License
 
-## License
+MIT License.
 
-This project is licensed under the MIT License.
+---
 
-## Contributing
+# 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions are welcome!
+Feel free to open issues or submit PRs.
