@@ -54,3 +54,6 @@ htmlcov/
 # OS
 .DS_Store
 Thumbs.db
+
+question_embeddings.npy
+HealthCareMagic-5k - Copy.json

@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from last_api import chat_with_bot
 import os
 
 app = FastAPI()
@@ -22,8 +23,8 @@ async def chat(request: Request):
     user_message = data.get("msg", "")
     
     # Model response generation logic would go here !!!!!!!!!
-    response = f"I received your message: '{user_message}'. How can I help with your medical query?"
-    
+    # response = f"I received your message: '{user_message}'. How can I help with your medical query?"
+    response = chat_with_bot(user_message)
     return {"response": response}
 
 
